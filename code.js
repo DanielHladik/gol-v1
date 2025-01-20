@@ -8,8 +8,6 @@ let reproductionTime = 500;
 let grid = new Array(rows);
 let nextGrid = new Array(rows);
 
-
-
 document.addEventListener('DOMContentLoaded', () => {
     createTable();
     initializeGrids();
@@ -37,8 +35,8 @@ function initializeGrids() {
 function createTable() {
     let gridContainer = document.getElementById("gridContainer");
     if (!gridContainer) {
-        // throw error
         console.error("Problem: no div for the grid table!");
+        return;
     }
     let table = document.createElement("table");
 
@@ -57,11 +55,9 @@ function createTable() {
 }
 
 function cellClickHandler() {
-    let rowcol = this.id.split("_");
-    let row = rowcol[0];
-    let col = rowcol[1];
+    let [row, col] = this.id.split("_").map(Number);
     let classes = this.getAttribute('class');
-    if (classes.indexOf('live') > -1) {
+    if (classes.includes('live')) {
         this.setAttribute('class', 'dead');
         grid[row][col] = 0;
     } else {
@@ -71,53 +67,50 @@ function cellClickHandler() {
 }
 
 function setupControlButtons() {
-
     let startButton = document.querySelector('#start');
     let clearButton = document.querySelector('#clear');
-    let rButton = document.querySelector('#random');
+    let randomButton = document.querySelector('#random');
+    let speedInput = document.querySelector('#speed');
 
     startButton.onclick = () => {
         if (playing) {
-            console.log('Pause the Game');
             playing = false;
-            startButton.innerHTML = 'continue';
+            startButton.innerHTML = 'Start';
         } else {
-            console.log('Cont the game');
             playing = true;
-            startButton.innerHTML = 'pause';
+            startButton.innerHTML = 'Pause';
             play();
-        };
+        }
     };
 
     clearButton.onclick = () => {
         playing = false;
-        startButton.innerHTML = "start";
+        startButton.innerHTML = "Start";
         resetGrids();
         updateView();
     };
 
-    rButton.onclick = () => {
+    randomButton.onclick = () => {
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
-                grid[i][j] = Math.floor(Math.random() * 2);
-                var cell = document.getElementById(i + '_' + j);
-                if (grid[i][j] == 1) cell.setAttribute('class', 'live');
-                else cell.setAttribute('class', 'dead');
+                grid[i][j] = Math.random() < 0.3 ? 1 : 0; // Higher chance for live cells
+                let cell = document.getElementById(i + '_' + j);
+                cell.setAttribute('class', grid[i][j] === 1 ? 'live' : 'dead');
             }
         }
-    }
+    };
 
+    speedInput.oninput = (e) => {
+        reproductionTime = Number(e.target.value);
+    };
 }
 
 function play() {
-    console.log("Play the game");
     computeNextGen();
-
     if (playing) {
         timer = setTimeout(play, reproductionTime);
     }
-
-};
+}
 
 function computeNextGen() {
     for (let i = 0; i < rows; i++) {
@@ -142,60 +135,34 @@ function updateView() {
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
             let cell = document.getElementById(i + '_' + j);
-            if (grid[i][j] == 0) {
-                cell.setAttribute('class', 'dead');
-            } else {
-                cell.setAttribute('class', 'live');
-            }
+            cell.setAttribute('class', grid[i][j] === 0 ? 'dead' : 'live');
         }
     }
 }
 
 function applyRules(row, col) {
     let numNeighbors = countNeighbors(row, col);
-
-    if (grid[row][col] == 1) {
-        if (numNeighbors < 2) {
-            nextGrid[row][col] = 0;
-        } else if (numNeighbors == 2 || numNeighbors == 3) {
-            nextGrid[row][col] = 1;
-        } else if (numNeighbors > 3) {
-            nextGrid[row][col] = 0;
-        }
-    } else if (grid[row][col] == 0) {
-        if (numNeighbors == 3) {
+    if (grid[row][col] === 1) {
+        nextGrid[row][col] = numNeighbors === 2 || numNeighbors === 3 ? 1 : 0;
+    } else if (grid[row][col] === 0) {
+        if (numNeighbors === 3) {
             nextGrid[row][col] = 1;
         }
     }
 }
 
-
 function countNeighbors(row, col) {
-    let count = 0;
+    let neighbors = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],           [0, 1],
+        [1, -1], [1, 0], [1, 1],
+    ];
 
-    if (row - 1 >= 0) {
-        if (grid[row - 1][col] == 1) count++;
-    }
-    if (row - 1 >= 0 && col - 1 >= 0) {
-        if (grid[row - 1][col - 1] == 1) count++;
-    }
-    if (row - 1 >= 0 && col + 1 < cols) {
-        if (grid[row - 1][col + 1] == 1) count++;
-    }
-    if (col - 1 >= 0) {
-        if (grid[row][col - 1] == 1) count++;
-    }
-    if (col + 1 < cols) {
-        if (grid[row][col + 1] == 1) count++;
-    }
-    if (row + 1 < rows) {
-        if (grid[row + 1][col] == 1) count++;
-    }
-    if (row + 1 < rows && col - 1 >= 0) {
-        if (grid[row + 1][col - 1] == 1) count++;
-    }
-    if (row + 1 < rows && col + 1 < cols) {
-        if (grid[row + 1][col + 1] == 1) count++;
-    }
-    return count;
+    return neighbors.reduce((count, [dx, dy]) => {
+        let newRow = row + dx, newCol = col + dy;
+        if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && grid[newRow][newCol] === 1) {
+            count++;
+        }
+        return count;
+    }, 0);
 }
