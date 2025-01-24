@@ -5,28 +5,35 @@ body {
     color: white;
     padding: 20px;
 }
+
 #gridContainer {
     display: inline-block;
     margin-bottom: 20px;
 }
+
 table {
-    background-color: #333;
     border-spacing: 1px;
+    background-color: #333;
 }
+
 td {
     width: 20px;
     height: 20px;
     border: 1px solid #555;
 }
+
 td.dead {
     background-color: #282c34;
 }
+
 td.live {
     background-color: #61dafb;
 }
-.controls {
+
+.controls, .settings {
     margin-top: 20px;
 }
+
 button {
     margin: 5px;
     padding: 10px;
@@ -36,9 +43,20 @@ button {
     color: white;
     cursor: pointer;
 }
+
 button:hover {
     background-color: #21a1f1;
 }
-input[type="range"] {
-    margin-left: 10px;
+
+fieldset {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #61dafb;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
 }

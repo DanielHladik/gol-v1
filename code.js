@@ -1,18 +1,18 @@
 let rows = 15;
 let cols = 15;
 let playing = false;
-
 let timer;
 let reproductionTime = 500;
-
-let grid = new Array(rows);
-let nextGrid = new Array(rows);
+let grid = [];
+let nextGrid = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     createTable();
     initializeGrids();
     resetGrids();
     setupControlButtons();
+    setupGridSizeSelector();
+    setupRuleForm();
 });
 
 function resetGrids() {
@@ -25,27 +25,24 @@ function resetGrids() {
 }
 
 function initializeGrids() {
+    grid = new Array(rows);
+    nextGrid = new Array(rows);
     for (let i = 0; i < rows; i++) {
         grid[i] = new Array(cols);
         nextGrid[i] = new Array(cols);
     }
 }
 
-// lay out the board
 function createTable() {
-    let gridContainer = document.getElementById("gridContainer");
-    if (!gridContainer) {
-        console.error("Problem: no div for the grid table!");
-        return;
-    }
-    let table = document.createElement("table");
-
+    const gridContainer = document.getElementById('gridContainer');
+    gridContainer.innerHTML = ''; // Clear existing grid
+    const table = document.createElement('table');
     for (let i = 0; i < rows; i++) {
-        let tr = document.createElement("tr");
+        const tr = document.createElement('tr');
         for (let j = 0; j < cols; j++) {
-            let cell = document.createElement("td");
-            cell.setAttribute("id", i + "_" + j);
-            cell.setAttribute("class", "dead");
+            const cell = document.createElement('td');
+            cell.setAttribute('id', i + '_' + j);
+            cell.setAttribute('class', 'dead');
             cell.onclick = cellClickHandler;
             tr.appendChild(cell);
         }
@@ -55,59 +52,65 @@ function createTable() {
 }
 
 function cellClickHandler() {
-    let [row, col] = this.id.split("_").map(Number);
-    let classes = this.getAttribute('class');
-    if (classes.includes('live')) {
-        this.setAttribute('class', 'dead');
+    const [row, col] = this.id.split('_').map(Number);
+    if (grid[row][col] === 1) {
         grid[row][col] = 0;
+        this.setAttribute('class', 'dead');
     } else {
-        this.setAttribute('class', 'live');
         grid[row][col] = 1;
+        this.setAttribute('class', 'live');
     }
 }
 
 function setupControlButtons() {
-    let startButton = document.querySelector('#start');
-    let clearButton = document.querySelector('#clear');
-    let randomButton = document.querySelector('#random');
-    let speedInput = document.querySelector('#speed');
-
-    startButton.onclick = () => {
-        if (playing) {
-            playing = false;
-            startButton.innerHTML = 'Start';
-        } else {
-            playing = true;
-            startButton.innerHTML = 'Pause';
-            play();
-        }
+    document.getElementById('start').onclick = () => {
+        playing = !playing;
+        document.getElementById('start').innerHTML = playing ? 'Pause' : 'Start';
+        if (playing) play();
     };
 
-    clearButton.onclick = () => {
+    document.getElementById('clear').onclick = () => {
         playing = false;
-        startButton.innerHTML = "Start";
+        document.getElementById('start').innerHTML = 'Start';
         resetGrids();
         updateView();
     };
 
-    randomButton.onclick = () => {
+    document.getElementById('random').onclick = () => {
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
-                grid[i][j] = Math.random() < 0.3 ? 1 : 0; // Higher chance for live cells
-                let cell = document.getElementById(i + '_' + j);
-                cell.setAttribute('class', grid[i][j] === 1 ? 'live' : 'dead');
+                grid[i][j] = Math.random() < 0.3 ? 1 : 0;
+                document.getElementById(`${i}_${j}`).setAttribute('class', grid[i][j] === 1 ? 'live' : 'dead');
             }
         }
     };
+}
 
-    speedInput.oninput = (e) => {
-        reproductionTime = Number(e.target.value);
+function setupGridSizeSelector() {
+    const gridSizeSelector = document.getElementById('gridSize');
+    gridSizeSelector.onchange = (e) => {
+        const size = e.target.value;
+        if (size === 'small') {
+            rows = cols = 10;
+        } else if (size === 'medium') {
+            rows = cols = 15;
+        } else if (size === 'large') {
+            rows = cols = 20;
+        }
+        resetGrids();
+        createTable();
     };
 }
 
+function setupRuleForm() {
+    document.querySelectorAll('#rulesForm input').forEach((input) => {
+        input.onchange = () => computeNextGen();
+    });
+}
+
 function play() {
-    computeNextGen();
     if (playing) {
+        computeNextGen();
         timer = setTimeout(play, reproductionTime);
     }
 }
@@ -122,6 +125,19 @@ function computeNextGen() {
     updateView();
 }
 
+function applyRules(row, col) {
+    const numNeighbors = countNeighbors(row, col);
+    const survive2 = document.getElementById('ruleSurvive2').checked;
+    const survive3 = document.getElementById('ruleSurvive3').checked;
+    const reproduce3 = document.getElementById('ruleReproduce3').checked;
+
+    if (grid[row][col] === 1) {
+        nextGrid[row][col] = (numNeighbors === 2 && survive2) || (numNeighbors === 3 && survive3) ? 1 : 0;
+    } else {
+        nextGrid[row][col] = numNeighbors === 3 && reproduce3 ? 1 : 0;
+    }
+}
+
 function copyAndResetGrid() {
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
@@ -131,38 +147,25 @@ function copyAndResetGrid() {
     }
 }
 
-function updateView() {
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            let cell = document.getElementById(i + '_' + j);
-            cell.setAttribute('class', grid[i][j] === 0 ? 'dead' : 'live');
-        }
-    }
-}
-
-function applyRules(row, col) {
-    let numNeighbors = countNeighbors(row, col);
-    if (grid[row][col] === 1) {
-        nextGrid[row][col] = numNeighbors === 2 || numNeighbors === 3 ? 1 : 0;
-    } else if (grid[row][col] === 0) {
-        if (numNeighbors === 3) {
-            nextGrid[row][col] = 1;
-        }
-    }
-}
-
 function countNeighbors(row, col) {
-    let neighbors = [
+    const neighbors = [
         [-1, -1], [-1, 0], [-1, 1],
         [0, -1],           [0, 1],
         [1, -1], [1, 0], [1, 1],
     ];
 
     return neighbors.reduce((count, [dx, dy]) => {
-        let newRow = row + dx, newCol = col + dy;
-        if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols && grid[newRow][newCol] === 1) {
-            count++;
-        }
-        return count;
+        const newRow = row + dx;
+        const newCol = col + dy;
+        return count + (grid[newRow] && grid[newRow][newCol] === 1 ? 1 : 0);
     }, 0);
+}
+
+function updateView() {
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            const cell = document.getElementById(`${i}_${j}`);
+            cell.setAttribute('class', grid[i][j] === 1 ? 'live' : 'dead');
+        }
+    }
 }

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game of Life</title>
     <link rel="stylesheet" href="life.css">
     <script defer src="code.js"></script>
@@ -12,10 +13,28 @@
         <button id="start">Start</button>
         <button id="clear">Clear</button>
         <button id="random">Random</button>
+    </div>
+    <div class="settings">
         <label>
-            Speed:
-            <input id="speed" type="range" min="100" max="1000" value="500">
+            Grid Size:
+            <select id="gridSize">
+                <option value="small">Small (10x10)</option>
+                <option value="medium" selected>Medium (15x15)</option>
+                <option value="large">Large (20x20)</option>
+            </select>
         </label>
+        <fieldset id="rulesForm">
+            <legend>Rules</legend>
+            <label>
+                <input type="checkbox" id="ruleSurvive2" checked> Survive with 2 neighbors
+            </label>
+            <label>
+                <input type="checkbox" id="ruleSurvive3" checked> Survive with 3 neighbors
+            </label>
+            <label>
+                <input type="checkbox" id="ruleReproduce3" checked> Reproduce with 3 neighbors
+            </label>
+        </fieldset>
     </div>
 </body>
 </html>
