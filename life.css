@@ -1,22 +1,62 @@
 body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #282c34;
+    color: white;
     padding: 20px;
-    background-color: #444;
-  }
-  #gridContainer {
-    padding-bottom: 10px;
-  }
-  table {
-    background-color: gray;
+}
+
+#gridContainer {
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+table {
     border-spacing: 1px;
-  }
-  td {
-    border: 1px solid rgb(90, 90, 90);
+    background-color: #333;
+}
+
+td {
     width: 20px;
     height: 20px;
-  }
-  td.dead {
-    background-color: transparent;
-  }
-  td.live {
-    background-color: white;
-  }
+    border: 1px solid #555;
+}
+
+td.dead {
+    background-color: #282c34;
+}
+
+td.live {
+    background-color: #61dafb;
+}
+
+.controls, .settings {
+    margin-top: 20px;
+}
+
+button {
+    margin: 5px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #61dafb;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #21a1f1;
+}
+
+fieldset {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #61dafb;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
